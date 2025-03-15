@@ -197,7 +197,7 @@ spec:
           configMap:
             defaultMode: 493
             name: init-transmission-cm
-      {{- if .Values.controller.extraVolumes }}
+      {{- if .Values.transmission.extraVolumes }}
         {{- toYaml .Values.transmission.extraVolumes | nindent 8 }}
       {{- end }}
       {{- with merge .Values.transmission.container.nodeSelector .Values.general.nodeSelector }}
