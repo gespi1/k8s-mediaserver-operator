@@ -115,6 +115,9 @@ spec:
         {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
         app: transmission
     spec:
+      {{- if .Values.transmission.serviceAccountName }}
+      serviceAccountName: {{ .Values.transmission.serviceAccountName }}
+      {{- end }}
       initContainers:
         - name: config-transmission
           image: docker.io/ubuntu:groovy
@@ -173,6 +176,9 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+      {{- if .Values.transmission.extraContainers }}
+        {{- toYaml .Values.transmission.extraContainers | nindent 8 }}
+      {{- end }}
       volumes:
         {{ if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume
@@ -191,6 +197,9 @@ spec:
           configMap:
             defaultMode: 493
             name: init-transmission-cm
+      {{- if .Values.controller.extraVolumes }}
+        {{- toYaml .Values.transmission.extraVolumes | nindent 8 }}
+      {{- end }}
       {{- with merge .Values.transmission.container.nodeSelector .Values.general.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
