@@ -11,10 +11,9 @@ data:
   init-sonarr.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    if [ ! -f /sonarr-config/config.xml ]; then
-      cp -n /init-sonarr/config.xml /sonarr-config/config.xml
-      echo "### No configuration found, intialized with default settings ###"
-    fi
+    cp -n /init-sonarr/config.xml /sonarr-config/config.xml
+    echo "### No configuration found, intialized with default settings ###"
+    
 kind: ConfigMap
 metadata:
   name: init-sonarr-cm
@@ -87,7 +86,7 @@ spec:
           volumeMounts:
           {{- if .Values.sonarr.volume }}
             - name: {{ .Values.sonarr.volume.name }}
-              mountPath: /config/test
+              mountPath: /config
           {{- else }}
             - name: mediaserver-volume
               mountPath: "/config"
