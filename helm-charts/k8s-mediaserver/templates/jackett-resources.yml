@@ -54,7 +54,6 @@ spec:
             - mountPath: /init-jackett
               name: init-files-jackett
           {{- if .Values.jackett.volume }}
-            - name: {{ .Values.jackett.volume.name }}
               mountPath: /jackett-config
           {{- else }}
             - name: mediaserver-volume
@@ -83,7 +82,7 @@ spec:
           volumeMounts:
           {{- if .Values.jackett.volume }}
             - name: {{ .Values.jackett.volume.name }}
-              mountPath: /config
+              mountPath: /config/Jackett
           {{- else }}
             - name: mediaserver-volume
               mountPath: "/config"
