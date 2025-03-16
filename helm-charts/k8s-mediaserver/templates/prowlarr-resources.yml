@@ -11,8 +11,10 @@ data:
   init-prowlarr.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    cp -n /init-prowlarr/config.xml /prowlarr-config/config.xml
-    echo "### No configuration found, intialized with default settings ###"
+    if [ ! -f /prowlarr-config/config.xml ]; then
+      cp -n /init-prowlarr/config.xml /prowlarr-config/config.xml
+      echo "### No configuration found, intialized with default settings ###"
+    fi
 kind: ConfigMap
 metadata:
   name: init-prowlarr-cm
