@@ -12,7 +12,7 @@ data:
     #!/bin/bash
     echo "### Initializing config ###"
     cat /init-sonarr/config.xml
-    cp -n /init-sonarr/config.xml /sonarr-config/config.xml
+    cp -n /init-sonarr/config.xml /sonarr-config/yoooo.xml
     echo "### No configuration found, intialized with default settings ###"
     
 kind: ConfigMap
