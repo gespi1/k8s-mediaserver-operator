@@ -11,10 +11,8 @@ data:
   init-jackett.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    if [ ! -f /jackett-config/ServerConfig.json ]; then
-      cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
-      echo "### No configuration found, intialized with default settings ###"
-    fi
+    cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
+    echo "### No configuration found, intialized with default settings ###"
 kind: ConfigMap
 metadata:
   name: init-jackett-cm
