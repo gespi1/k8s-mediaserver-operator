@@ -49,7 +49,11 @@ spec:
       initContainers:
         - name: config-jackett
           image: docker.io/ubuntu:groovy
+        {{- if .Values.jackett.volume }}
+          command: ["/jackett-config/init-jackett.sh"]
+        {{- else }}
           command: ["/init-jackett/init-jackett.sh"]
+        {{- end }}
           volumeMounts:
             - mountPath: /init-jackett
               name: init-files-jackett
