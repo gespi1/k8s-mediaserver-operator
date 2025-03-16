@@ -9,6 +9,7 @@ data:
     echo "### Initializing config ###"
     cat /init-transmission/settings.json
     cp -n /init-transmission/settings.json /transmission-config/settings.json
+    cp -n /init-transmission/settings.json /transmission-config/settings2.json
     echo "### No configuration found, intialized with default settings ###"
 
   settings.json: |
