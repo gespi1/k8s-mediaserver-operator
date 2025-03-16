@@ -13,7 +13,6 @@ data:
   settings.json: |
     {
         "alt-speed-down": 50,
-        "yoyo": 55
         "alt-speed-enabled": false,
         "alt-speed-time-begin": 540,
         "alt-speed-time-day": 127,
@@ -59,7 +58,7 @@ data:
         "rpc-enabled": true,
         "rpc-host-whitelist": "",
         "rpc-host-whitelist-enabled": false,
-        "rpc-password": {{ .Values.transmission.config.auth.password | quote }} ,
+        "rpc-password": {{ .Values.transmission.config.auth.password | quote }},
         "rpc-port": 9091,
         "rpc-url": "{{ .Values.transmission.ingress.path }}/",
         "rpc-username": {{ .Values.transmission.config.auth.username | quote }},
