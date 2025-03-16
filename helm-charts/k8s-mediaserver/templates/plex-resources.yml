@@ -77,6 +77,9 @@ spec:
             - name: mediaserver-volume
               mountPath: /tv
               subPath: "{{ .Values.general.storage.subPaths.tv }}"
+            - name: mediaserver-volume
+              mountPath: /downloads
+              subPath: "{{ .Values.general.storage.subPaths.downloads }}"
           {{- with .Values.plex.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
