@@ -11,8 +11,6 @@ data:
   init-sonarr.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    cat /init-sonarr/config.xml
-    cp -n /init-sonarr/config.xml /sonarr-config/yoooo.xml
     cp -n /init-sonarr/config.xml /sonarr-config/config.xml
     echo "### No configuration found, intialized with default settings ###"
     

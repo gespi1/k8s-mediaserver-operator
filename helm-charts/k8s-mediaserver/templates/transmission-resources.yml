@@ -7,10 +7,9 @@ data:
   init-transmission.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    if [ ! -f /transmission-config/settings.json ]; then
-      cp -n /init-transmission/settings.json /transmission-config/settings.json
-      echo "### No configuration found, intialized with default settings ###"
-    fi
+    cp -n /init-transmission/settings.json /transmission-config/settings.json
+    echo "### No configuration found, intialized with default settings ###"
+
   settings.json: |
     {
         "alt-speed-down": 50,
