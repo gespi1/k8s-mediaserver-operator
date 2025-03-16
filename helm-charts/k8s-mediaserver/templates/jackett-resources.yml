@@ -11,25 +11,10 @@ data:
   init-jackett.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    
-    # Wait for the ServerConfig.json file to exist
-    MAX_ATTEMPTS=3
-    ATTEMPT=0
-    while [ ! -f /init-jackett/ServerConfig.json ] && [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-      ls /init-jackett/
-      echo "Waiting for /init-jackett/ServerConfig.json to exist... (${ATTEMPT}/${MAX_ATTEMPTS})"
-      sleep 2
-      ATTEMPT=$((ATTEMPT+1))
-    done
-    
-    if [ ! -f /init-jackett/ServerConfig.json ]; then
-      echo "ERROR: /init-jackett/ServerConfig.json file not found after waiting. Configuration failed."
-      exit 1
+    if [ ! -f /jackett-config/ServerConfig.json ]; then
+      cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
+      echo "### No configuration found, intialized with default settings ###"
     fi
-    
-    echo "ServerConfig.json found, proceeding with configuration..."
-    cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
-    echo "### No configuration found, intialized with default settings ###"
 kind: ConfigMap
 metadata:
   name: init-jackett-cm
@@ -64,21 +49,18 @@ spec:
       initContainers:
         - name: config-jackett
           image: docker.io/ubuntu:groovy
-        {{- if .Values.jackett.volume }}
-          command: ["/jackett-config/init-jackett.sh"]
-        {{- else }}
           command: ["/init-jackett/init-jackett.sh"]
-        {{- end }}
           volumeMounts:
             - mountPath: /init-jackett
               name: init-files-jackett
-          {{- if .Values.jackett.volume }}
+        {{- if .Values.jackett.volume }}
+            - name: {{ .Values.jackett.volume.name }}
               mountPath: /jackett-config
-          {{- else }}
+        {{- else }}
             - name: mediaserver-volume
               mountPath: /jackett-config
               subPath: "{{ .Values.general.storage.subPaths.config }}/jackett/Jackett"
-          {{- end }}
+        {{- end }}
           securityContext:
             runAsUser: {{ .Values.general.puid }}
             runAsGroup: {{ .Values.general.pgid }}
