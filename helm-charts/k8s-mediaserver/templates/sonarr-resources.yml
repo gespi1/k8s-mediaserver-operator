@@ -87,7 +87,7 @@ spec:
           volumeMounts:
           {{- if .Values.sonarr.volume }}
             - name: {{ .Values.sonarr.volume.name }}
-              mountPath: /config
+              mountPath: /config/test
           {{- else }}
             - name: mediaserver-volume
               mountPath: "/config"
