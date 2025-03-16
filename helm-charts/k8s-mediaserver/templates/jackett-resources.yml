@@ -82,7 +82,7 @@ spec:
           volumeMounts:
           {{- if .Values.jackett.volume }}
             - name: {{ .Values.jackett.volume.name }}
-              mountPath: /config/Jackett
+              mountPath: /config
           {{- else }}
             - name: mediaserver-volume
               mountPath: "/config"
