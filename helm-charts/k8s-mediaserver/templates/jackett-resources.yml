@@ -16,6 +16,7 @@ data:
     MAX_ATTEMPTS=3
     ATTEMPT=0
     while [ ! -f /init-jackett/ServerConfig.json ] && [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+      ls /init-jackett/
       echo "Waiting for /init-jackett/ServerConfig.json to exist... (${ATTEMPT}/${MAX_ATTEMPTS})"
       sleep 2
       ATTEMPT=$((ATTEMPT+1))
