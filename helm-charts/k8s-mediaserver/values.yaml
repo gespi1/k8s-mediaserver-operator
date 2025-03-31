@@ -318,7 +318,7 @@ jellyfin:
   #  selector: {}
 
 qbittorrent:
-  enabled: false  # Set to true to enable
+  enabled: true  # Set to true to enable
   container:
     image: ghcr.io/linuxserver/qbittorrent
     tag: version-5.0.3-r0
