@@ -25,6 +25,7 @@ general:
       movies: media/movies
       downloads: downloads
       transmission: transmission
+      qbittorrent: qbittorrent
       sabnzbd: sabnzbd
       config: config
     volumes: {}
@@ -309,6 +310,56 @@ jellyfin:
   #    memory: 100Mi
   volume: {}
   #  name: pvc-jellyfin-config
+  #  storageClassName: longhorn
+  #  annotations: {}
+  #  labels: {}
+  #  accessModes: ReadWriteOnce
+  #  storage: 5Gi
+  #  selector: {}
+
+qbittorrent:
+  enabled: false  # Set to true to enable
+  container:
+    image: ghcr.io/linuxserver/qbittorrent
+    tag: version-5.0.3-r0
+    nodeSelector: {}
+    port:
+      http: 8080
+      peer: 6881
+  service:
+    http:
+      type: ClusterIP
+      port: 8080
+      # if type is NodePort, nodePort must be set
+      nodePort:
+      # Defines an additional LB service, requires cloud provider service or MetalLB
+      extraLBService: false
+      extraLBAnnotations: {}
+    peer:
+      type: ClusterIP
+      port: 6881
+      # if type is NodePort, nodePort and nodePortUDP must be set
+      nodePort:
+      nodePortUDP:
+      # Defines an additional LB service, requires cloud provider service or MetalLB
+      extraLBService: false
+      extraLBAnnotations: {}
+  ingress:
+    enabled: true
+    annotations: {}
+    path: /qbittorrent
+    tls:
+      enabled: false
+      secretName: ""
+  config:
+    timezone: "UTC"
+    auth:
+      enabled: false  # Authentication is disabled by default
+      username: "admin"  # Only used if auth.enabled is true
+      passwordHash: ""  # Only used if auth.enabled is true, PBKDF2 hash format
+  resources: {}
+  volume: {}
+  #  name: pvc-qbittorrent-config
   #  storageClassName: longhorn
   #  annotations: {}
   #  labels: {}

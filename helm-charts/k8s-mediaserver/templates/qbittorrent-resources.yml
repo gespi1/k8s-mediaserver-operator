@@ -1,0 +1,418 @@
+{{- if .Values.qbittorrent.enabled -}}
+---
+### SERVICE ACCOUNT & RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qbittorrent-sa
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: qbittorrent-role
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: qbittorrent-rolebinding
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: qbittorrent-role
+subjects:
+- kind: ServiceAccount
+  name: qbittorrent-sa
+---
+### CONFIGMAP
+## INIT-CONTAINER
+apiVersion: v1
+data:
+  init-qbittorrent.sh: |
+    #!/bin/bash
+    echo "### Initializing qBittorrent config ###"
+    mkdir -p /qbittorrent-config/qBittorrent
+    if [ ! -f /qbittorrent-config/qBittorrent/qBittorrent.conf ]; then
+      cp -n /init-qbittorrent/qBittorrent.conf /qbittorrent-config/qBittorrent/qBittorrent.conf
+      echo "### No configuration found, initialized with default settings ###"
+    else
+      echo "### Configuration found, using existing settings ###"
+    fi
+
+  qBittorrent.conf: |
+    [AutoRun]
+    enabled=false
+    program=
+
+    [BitTorrent]
+    Session\DefaultSavePath=/downloads/qbittorrent/complete
+    Session\DisableAutoTMMByDefault=false
+    Session\DisableAutoTMMTriggers\CategorySavePathChanged=false
+    Session\DisableAutoTMMTriggers\DefaultSavePathChanged=false
+    Session\Port={{ .Values.qbittorrent.service.peer.port }}
+    Session\QueueingSystemEnabled=true
+    Session\TempPath=/downloads/qbittorrent/incomplete
+
+    [Core]
+    AutoDeleteAddedTorrentFile=Never
+
+    [LegalNotice]
+    Accepted=true
+
+    [Meta]
+    MigrationVersion=4
+
+    [Network]
+    PortForwardingEnabled=true
+    Proxy\OnlyForTorrents=false
+
+    [Preferences]
+    Advanced\RecheckOnCompletion=false
+    Advanced\trackerPort=9000
+    Connection\PortRangeMin={{ .Values.qbittorrent.service.peer.port }}
+    Connection\ResolvePeerCountries=true
+    Connection\UPnP=false
+    Downloads\SavePath=/downloads/qbittorrent/complete
+    Downloads\TempPath=/downloads/qbittorrent/incomplete
+    WebUI\Address=0.0.0.0
+    WebUI\AlternativeUIEnabled=false
+    WebUI\AuthSubnetWhitelist=@Invalid()
+    WebUI\AuthSubnetWhitelistEnabled=false
+    WebUI\BanDuration=3600
+    WebUI\CSRFProtection=true
+    WebUI\ClickjackingProtection=true
+    WebUI\HTTPS\Enabled=false
+    WebUI\HostHeaderValidation=true
+    WebUI\LocalHostAuth={{ .Values.qbittorrent.config.auth.enabled }}
+    {{- if .Values.qbittorrent.config.auth.enabled }}
+    WebUI\Password_PBKDF2="@ByteArray({{ .Values.qbittorrent.config.auth.passwordHash }})"
+    WebUI\Username={{ .Values.qbittorrent.config.auth.username }}
+    {{- else }}
+    WebUI\Password_PBKDF2=
+    WebUI\Username=
+    {{- end }}
+    WebUI\Port={{ .Values.qbittorrent.container.port.http }}
+    WebUI\RootFolder=
+    WebUI\SecureCookie=true
+    WebUI\ServerDomains=*
+    WebUI\SessionTimeout=3600
+    WebUI\UseUPnP=false
+    WebUI\ReverseProxySupportEnabled=true
+    WebUI\HostHeaderValidation=false
+    WebUI\TrustedReverseProxiesList=*
+kind: ConfigMap
+metadata:
+  name: init-qbittorrent-cm
+---
+## APPLICATION
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbittorrent-config
+data:
+  PGID: "{{ .Values.general.pgid }}"
+  PUID: "{{ .Values.general.puid }}"
+  TZ: "{{ .Values.qbittorrent.config.timezone | default "UTC" }}"
+  WEBUI_PORT: "{{ .Values.qbittorrent.container.port.http }}"
+---
+### DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "k8s-mediaserver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
+        app: qbittorrent
+    spec:
+      {{- if .Values.qbittorrent.serviceAccountName }}
+      serviceAccountName: {{ .Values.qbittorrent.serviceAccountName }}
+      {{- else }}
+      serviceAccountName: qbittorrent-sa
+      {{- end }}
+      initContainers:
+        - name: config-qbittorrent
+          image: docker.io/ubuntu:jammy
+          command: ["/init-qbittorrent/init-qbittorrent.sh"]
+          volumeMounts:
+            - mountPath: /init-qbittorrent
+              name: init-files-qbittorrent
+          {{ if .Values.qbittorrent.volume }}
+            - name: {{ .Values.qbittorrent.volume.name }}
+              mountPath: /qbittorrent-config
+          {{ else }}
+            - name: mediaserver-volume
+              mountPath: "/qbittorrent-config"
+              subPath: "{{ .Values.general.storage.subPaths.config }}/qbittorrent"
+          {{ end }}
+          securityContext:
+            runAsUser: {{ .Values.general.puid }}
+            runAsGroup: {{ .Values.general.pgid }}
+      containers:
+        - name: {{ .Chart.Name }}
+          envFrom:
+            - configMapRef:
+                name: qbittorrent-config
+          image: "{{ .Values.qbittorent.container.image }}:{{ .Values.qbittorent.container.tag | default .Values.general.image_tag }}"
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: "{{ .Values.qbittorrent.ingress.path }}/"
+              port: {{ .Values.qbittorrent.container.port.http }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 20
+          ports:
+            - name: qbit-web
+              containerPort: {{ .Values.qbittorrent.container.port.http }}
+              protocol: TCP
+            - name: qbit-peer-tcp
+              containerPort: {{ .Values.qbittorrent.container.port.peer }}
+              protocol: TCP
+            - name: qbit-peer-udp
+              containerPort: {{ .Values.qbittorrent.container.port.peer }}
+              protocol: UDP
+          volumeMounts:
+          {{ if .Values.qbittorrent.volume }}
+            - name: {{ .Values.qbittorrent.volume.name }}
+              mountPath: /config
+          {{ else }}
+            - name: mediaserver-volume
+              mountPath: "/config"
+              subPath: "{{ .Values.general.storage.subPaths.config }}/qbittorrent"
+          {{ end }}
+            - name: mediaserver-volume
+              mountPath: "/downloads"
+              subPath: "{{ .Values.general.storage.subPaths.downloads }}"
+          {{- with .Values.qbittorrent.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if .Values.qbittorrent.extraContainers }}
+        {{- toYaml .Values.qbittorrent.extraContainers | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{ if not .Values.general.storage.customVolume }}
+        - name: mediaserver-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.general.storage.pvcName }}
+        {{ else }}
+        - name: mediaserver-volume
+          {{- toYaml .Values.general.storage.volumes | nindent 10 }}
+        {{ end }}
+        {{ if .Values.qbittorrent.volume }}
+        - name: {{ .Values.qbittorrent.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.qbittorrent.volume.name }}
+        {{ end }}
+        - name: init-files-qbittorrent
+          configMap:
+            defaultMode: 493
+            name: init-qbittorrent-cm
+      {{- if .Values.qbittorrent.extraVolumes }}
+        {{- toYaml .Values.qbittorrent.extraVolumes | nindent 8 }}
+      {{- end }}
+      {{- with merge .Values.qbittorrent.container.nodeSelector .Values.general.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.general.podDistribution "cluster" }}
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                  - {{ .Release.Name }}
+              topologyKey: "kubernetes.io/hostname"
+            weight: 100
+      {{- else if eq .Values.general.podDistribution "spread" }}
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: "ScheduleAnyway"
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
+---
+### SERVICES
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.qbittorrent.service.http.type }}
+  ports:
+    - port: {{ .Values.qbittorrent.service.http.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.http }}
+      protocol: TCP
+      name: qbit-web
+{{ if eq .Values.qbittorrent.service.http.type "NodePort" }}
+      nodePort: {{ .Values.qbittorrent.service.http.nodePort }}
+{{ end }}
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-peer-tcp
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.qbittorrent.service.peer.type }}
+  ports:
+    - port: {{ .Values.qbittorrent.service.peer.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.peer }}
+      protocol: TCP
+      name: qbit-peer-tcp
+{{ if eq .Values.qbittorrent.service.peer.type "NodePort" }}
+      nodePort: {{ .Values.qbittorrent.service.peer.nodePort }}
+{{ end }}
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-peer-udp
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.qbittorrent.service.peer.type }}
+  ports:
+    - port: {{ .Values.qbittorrent.service.peer.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.peer }}
+      protocol: UDP
+      name: qbit-peer-udp
+{{ if eq .Values.qbittorrent.service.peer.type "NodePort" }}
+      nodePort: {{ .Values.qbittorrent.service.peer.nodePortUDP }}
+{{ end }}
+  selector:
+    app: qbittorrent
+---
+{{ if .Values.qbittorrent.service.http.extraLBService }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-lb
+  {{- with .Values.qbittorrent.service.http.extraLBAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.qbittorrent.service.http.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.http }}
+      protocol: TCP
+      name: qbit-web
+  selector:
+    app: qbittorrent
+---
+{{ end }}
+{{ if .Values.qbittorrent.service.peer.extraLBService }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-lb-peer-tcp
+  {{- with .Values.qbittorrent.service.peer.extraLBAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.qbittorrent.service.peer.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.peer }}
+      protocol: TCP
+      name: qbit-peer-tcp
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-lb-peer-udp
+  {{- with .Values.qbittorrent.service.peer.extraLBAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.qbittorrent.service.peer.port }}
+      targetPort: {{ .Values.qbittorrent.container.port.peer }}
+      protocol: UDP
+      name: qbit-peer-udp
+  selector:
+    app: qbittorrent
+{{ end }}
+---
+### INGRESS
+{{ if .Values.qbittorrent.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+  {{- with .Values.qbittorrent.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.qbittorrent.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.general.ingress_host | quote }}
+      secretName: {{ .Values.qbittorrent.ingress.tls.secretName }}
+{{ end }}
+  ingressClassName: {{ .Values.general.ingress.ingressClassName }}
+  rules:
+    - host: {{ .Values.general.ingress_host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.qbittorrent.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: {{ .Values.qbittorrent.service.http.port }}
+{{ end }}
+{{ end }} 
