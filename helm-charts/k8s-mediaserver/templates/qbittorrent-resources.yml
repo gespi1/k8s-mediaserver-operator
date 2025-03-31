@@ -175,11 +175,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: qbittorrent-config
-          image: "{{ .Values.qbittorent.container.image }}:{{ .Values.qbittorent.container.tag | default .Values.general.image_tag }}"
+          image: "{{ .Values.qbittorrent.container.image }}:{{ .Values.qbittorrent.container.tag | default .Values.general.image_tag }}"
           imagePullPolicy: Always
           readinessProbe:
             httpGet:
-              path: "{{ .Values.qbittorrent.ingress.path }}/"
+              path: "/"
               port: {{ .Values.qbittorrent.container.port.http }}
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -391,10 +391,11 @@ metadata:
   name: qbittorrent
   labels:
     {{- include "k8s-mediaserver.labels" . | nindent 4 }}
-  {{- with .Values.qbittorrent.ingress.annotations }}
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    {{- with .Values.qbittorrent.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
 {{- if .Values.qbittorrent.ingress.tls.enabled }}
   tls:
@@ -407,7 +408,7 @@ spec:
     - host: {{ .Values.general.ingress_host | quote }}
       http:
         paths:
-          - path: {{ .Values.qbittorrent.ingress.path }}
+          - path: {{ .Values.qbittorrent.ingress.path }}(/|$)(.*)
             pathType: Prefix
             backend:
               service:

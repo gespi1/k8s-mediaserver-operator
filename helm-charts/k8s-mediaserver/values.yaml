@@ -346,8 +346,8 @@ qbittorrent:
       extraLBAnnotations: {}
   ingress:
     enabled: true
-    annotations: {}
-    path: /qbittorrent
+    annotations: {}  # Additional annotations; path rewriting is already enabled by default
+    path: /qbittorrent  # Will be used with path rewriting since qBittorrent doesn't support base paths
     tls:
       enabled: false
       secretName: ""
