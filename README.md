@@ -336,6 +336,45 @@ letting some customization to fit the resource inside your cluster.
 | sabnzbd.resources                          | Limits and Requests for the container                                                                         | {}                            |
 | sabnzbd.volume                             | If set, Plex will create a PVC for it's config volume, else it will be put on general.storage.subPaths.config | {}                            |
 
+### qBittorrent
+
+| Config path                                 | Meaning                                                                                                           | Default                        |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| qbittorrent.enabled                        | Flag if you want to enable qBittorrent                                                                            | true                           |
+| qbittorrent.container.image                 | The image used by the container                                                                                   | ghcr.io/linuxserver/qbittorrent|
+| qbittorrent.container.tag                   | The tag used by the container                                                                                     | version-5.0.3-r0               |
+| qbittorrent.container.nodeSelector          | Node Selector for the qBittorrent pods                                                                            | {}                             |
+| qbittorrent.container.port.http             | The port in use by the container for the Web UI                                                                   | 8080                           |
+| qbittorrent.container.port.peer             | The port in use by the container for peer connections (TCP/UDP)                                                   | 6881                           |
+| qbittorrent.service.http.type               | The kind of Service (ClusterIP/NodePort/LoadBalancer) for the Web UI                                              | ClusterIP                      |
+| qbittorrent.service.http.port               | The port assigned to the service for the Web UI                                                                   | 8080                           |
+| qbittorrent.service.http.nodePort           | In case of service.type NodePort, the nodePort to use for the Web UI                                              | ""                             |
+| qbittorrent.service.http.extraLBService     | If true, creates an additional LoadBalancer service with '-lb' suffix (requires a cloud provider or MetalLB)      | false                          |
+| qbittorrent.service.http.extraLBAnnotations | Annotations for the extra load balancer service                                                                   | {}                             |
+| qbittorrent.service.peer.type               | The kind of Service (ClusterIP/NodePort/LoadBalancer) for peer connections                                        | ClusterIP                      |
+| qbittorrent.service.peer.port               | The port assigned to the service for peer connections (TCP/UDP)                                                   | 6881                           |
+| qbittorrent.service.peer.nodePort           | In case of service.type NodePort, the nodePort to use for peer TCP                                                | ""                             |
+| qbittorrent.service.peer.nodePortUDP        | In case of service.type NodePort, the nodePort to use for peer UDP                                                | ""                             |
+| qbittorrent.service.peer.extraLBService     | If true, creates an additional LoadBalancer service for peer connections                                          | false                          |
+| qbittorrent.service.peer.extraLBAnnotations | Annotations for the extra peer load balancer service                                                              | {}                             |
+| qbittorrent.ingress.enabled                 | If true, creates the ingress resource for the application                                                         | true                           |
+| qbittorrent.ingress.annotations             | Additional field for annotations, if needed                                                                       | {}                             |
+| qbittorrent.ingress.tls.enabled             | If true, tls is enabled                                                                                           | false                          |
+| qbittorrent.ingress.tls.secretName          | Name of the secret holding certificates for the secure ingress                                                    | ""                             |
+| qbittorrent.config.timezone                 | Timezone for the container                                                                                        | UTC                            |
+| qbittorrent.config.auth.enabled             | Enables authentication for qBittorrent Web UI                                                                     | false                          |
+| qbittorrent.config.auth.username            | Username for qBittorrent Web UI (if auth enabled)                                                                 | admin                          |
+| qbittorrent.config.auth.passwordHash        | PBKDF2 hash for the Web UI password (if auth enabled)                                                            | ""                             |
+| qbittorrent.resources                       | Limits and Requests for the container                                                                             | {}                             |
+| qbittorrent.volume                          | If set, qBittorrent will create a PVC for its config volume, else it will be put on general.storage.subPaths.config | {}                             |
+
+**Notes:**
+- By default, authentication for the Web UI is disabled. To enable it, set `qbittorrent.config.auth.enabled` to `true` and provide a username and PBKDF2 password hash.
+- The Web UI is available on the configured HTTP port (default: 8080).
+- Peer connections use port 6881 (TCP/UDP by default).
+- You can customize storage by providing a `volume` section, or use the shared config path.
+- Ingress and service options allow for flexible exposure of the Web UI and peer ports.
+
 ## Helpful use-cases
 
 ### Using a cluster-external NFS server
