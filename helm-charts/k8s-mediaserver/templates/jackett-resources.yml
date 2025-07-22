@@ -14,6 +14,8 @@ data:
     if [ ! -f /jackett-config/ServerConfig.json ]; then
       cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
       echo "### No configuration found, intialized with default settings ###"
+      cd /jackett-config
+      touch hooooo
     fi
 kind: ConfigMap
 metadata:
