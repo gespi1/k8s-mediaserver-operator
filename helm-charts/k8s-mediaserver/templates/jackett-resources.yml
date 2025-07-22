@@ -14,8 +14,6 @@ data:
     if [ ! -f /jackett-config/ServerConfig.json ]; then
       cp -n /init-jackett/ServerConfig.json /jackett-config/ServerConfig.json
       echo "### No configuration found, intialized with default settings ###"
-      cd /jackett-config
-      touch hooooo
     fi
 kind: ConfigMap
 metadata:
@@ -55,14 +53,14 @@ spec:
           volumeMounts:
             - mountPath: /init-jackett
               name: init-files-jackett
-        {{- if .Values.jackett.volume }}
+          {{- if .Values.jackett.volume }}
             - name: {{ .Values.jackett.volume.name }}
               mountPath: /jackett-config
-        {{- else }}
+          {{- else }}
             - name: mediaserver-volume
               mountPath: /jackett-config
               subPath: "{{ .Values.general.storage.subPaths.config }}/jackett/Jackett"
-        {{- end }}
+          {{- end }}
           securityContext:
             runAsUser: {{ .Values.general.puid }}
             runAsGroup: {{ .Values.general.pgid }}
