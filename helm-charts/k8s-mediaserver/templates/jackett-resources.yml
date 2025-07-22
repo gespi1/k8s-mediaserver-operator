@@ -93,7 +93,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.qbittorrent.extraContainers }}
+      {{- if .Values.jackett.extraContainers }}
         {{- toYaml .Values.jackett.extraContainers | nindent 8 }}
       {{- end }}
       volumes:
