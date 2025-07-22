@@ -15,7 +15,6 @@ data:
       cp -n /init-sonarr/config.xml /sonarr-config/config.xml
       echo "### No configuration found, intialized with default settings ###"
     fi
-    
 kind: ConfigMap
 metadata:
   name: init-sonarr-cm

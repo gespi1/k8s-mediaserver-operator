@@ -11,7 +11,6 @@ data:
       cp -n /init-transmission/settings.json /transmission-config/settings.json
       echo "### No configuration found, intialized with default settings ###"
     fi
-
   settings.json: |
     {
         "alt-speed-down": 50,
@@ -55,12 +54,12 @@ data:
         "ratio-limit": 2,
         "ratio-limit-enabled": false,
         "rename-partial-files": true,
-        "rpc-authentication-required": {{ .Values.transmission.config.auth.enabled }} ,
+        "rpc-authentication-required": {{ .Values.transmission.config.auth.enabled }},
         "rpc-bind-address": "0.0.0.0",
         "rpc-enabled": true,
         "rpc-host-whitelist": "",
         "rpc-host-whitelist-enabled": false,
-        "rpc-password": {{ .Values.transmission.config.auth.password | quote }},
+        "rpc-password": {{ .Values.transmission.config.auth.password | quote }} ,
         "rpc-port": 9091,
         "rpc-url": "{{ .Values.transmission.ingress.path }}/",
         "rpc-username": {{ .Values.transmission.config.auth.username | quote }},
