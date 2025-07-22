@@ -7,8 +7,10 @@ data:
   init-transmission.sh: |
     #!/bin/bash
     echo "### Initializing config ###"
-    cp -n /init-transmission/settings.json /transmission-config/settings.json
-    echo "### No configuration found, intialized with default settings ###"
+    if [ ! -f /transmission-config/settings.json ]; then
+      cp -n /init-transmission/settings.json /transmission-config/settings.json
+      echo "### No configuration found, intialized with default settings ###"
+    fi
 
   settings.json: |
     {
@@ -53,7 +55,7 @@ data:
         "ratio-limit": 2,
         "ratio-limit-enabled": false,
         "rename-partial-files": true,
-        "rpc-authentication-required": {{ .Values.transmission.config.auth.enabled }},
+        "rpc-authentication-required": {{ .Values.transmission.config.auth.enabled }} ,
         "rpc-bind-address": "0.0.0.0",
         "rpc-enabled": true,
         "rpc-host-whitelist": "",
@@ -114,9 +116,6 @@ spec:
         {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
         app: transmission
     spec:
-      {{- if .Values.transmission.serviceAccountName }}
-      serviceAccountName: {{ .Values.transmission.serviceAccountName }}
-      {{- end }}
       initContainers:
         - name: config-transmission
           image: docker.io/ubuntu:groovy
@@ -175,9 +174,6 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.transmission.extraContainers }}
-        {{- toYaml .Values.transmission.extraContainers | nindent 8 }}
-      {{- end }}
       volumes:
         {{ if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume
@@ -196,9 +192,6 @@ spec:
           configMap:
             defaultMode: 493
             name: init-transmission-cm
-      {{- if .Values.transmission.extraVolumes }}
-        {{- toYaml .Values.transmission.extraVolumes | nindent 8 }}
-      {{- end }}
       {{- with merge .Values.transmission.container.nodeSelector .Values.general.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
