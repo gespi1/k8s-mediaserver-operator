@@ -1,5 +1,38 @@
 {{ if .Values.prowlarr.enabled }}
 ---
+# SERVICE ACCOUNT & RBAC for Prowlarr
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prowlarr-sa
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prowlarr-role
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prowlarr-rolebinding
+  labels:
+    {{- include "k8s-mediaserver.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prowlarr-role
+subjects:
+- kind: ServiceAccount
+  name: prowlarr-sa
+---
 ### CONFIGMAPS
 ## INIT-CONTAINER
 apiVersion: v1
@@ -48,6 +81,7 @@ spec:
         {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
         app: prowlarr
     spec:
+      serviceAccountName: prowlarr-sa
       initContainers:
         - name: config-prowlarr
           image: docker.io/ubuntu:groovy
