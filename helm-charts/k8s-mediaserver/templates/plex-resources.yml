@@ -110,6 +110,10 @@ spec:
           matchLabels:
             app.kubernetes.io/instance: {{ .Release.Name }}
       {{- end }}
+      {{- if .Values.plex.tolerations }}
+      tolerations:
+        {{- toYaml .Values.plex.tolerations | nindent 8 }}
+      {{- end }}
 ---
 ### SERVICE
 apiVersion: v1

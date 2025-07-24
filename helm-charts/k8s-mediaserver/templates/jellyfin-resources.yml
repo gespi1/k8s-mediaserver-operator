@@ -80,6 +80,10 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.jellyfin.tolerations }}
+      tolerations:
+        {{- toYaml .Values.jellyfin.tolerations | nindent 8 }}
+      {{- end }}
 ---
 ### SERVICE
 apiVersion: v1

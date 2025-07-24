@@ -104,6 +104,10 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+      {{- if .Values.radarr.tolerations }}
+      tolerations:
+        {{- toYaml .Values.radarr.tolerations | nindent 8 }}
+      {{- end }}
       volumes:
         {{- if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume

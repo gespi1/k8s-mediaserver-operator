@@ -96,6 +96,10 @@ spec:
       {{- if .Values.jackett.extraContainers }}
         {{- toYaml .Values.jackett.extraContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.jackett.tolerations }}
+      tolerations:
+        {{- toYaml .Values.jackett.tolerations | nindent 8 }}
+      {{- end }}
       volumes:
         {{- if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume

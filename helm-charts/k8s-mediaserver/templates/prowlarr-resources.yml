@@ -134,6 +134,10 @@ spec:
       {{- if .Values.prowlarr.extraContainers }}
         {{- toYaml .Values.prowlarr.extraContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.prowlarr.tolerations }}
+      tolerations:
+        {{- toYaml .Values.prowlarr.tolerations | nindent 8 }}
+      {{- end }}
       volumes:
         {{ if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume

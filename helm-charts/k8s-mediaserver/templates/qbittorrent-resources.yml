@@ -213,6 +213,10 @@ spec:
       {{- if .Values.qbittorrent.extraContainers }}
         {{- toYaml .Values.qbittorrent.extraContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.qbittorrent.tolerations }}
+      tolerations:
+        {{- toYaml .Values.qbittorrent.tolerations | nindent 8 }}
+      {{- end }}
       volumes:
         {{ if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume
