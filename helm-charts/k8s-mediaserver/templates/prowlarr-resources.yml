@@ -156,6 +156,9 @@ spec:
           configMap:
             defaultMode: 493
             name: init-prowlarr-cm
+        {{- if .Values.prowlarr.extraContainers }}
+          {{- toYaml .Values.prowlarr.extraVolumes | nindent 8 }}
+        {{- end }}
       {{- with merge .Values.prowlarr.container.nodeSelector .Values.general.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
