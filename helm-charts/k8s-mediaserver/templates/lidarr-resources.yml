@@ -39,7 +39,18 @@ apiVersion: v1
 data:
   config.xml: |
     <Config>
+      <Port>{{ .Values.lidarr.container.port }}</Port>
       <UrlBase>{{ .Values.lidarr.ingress.path }}</UrlBase>
+      <BindAddress>*</BindAddress>
+      <SslPort>9898</SslPort>
+      <EnableSsl>False</EnableSsl>
+      <ApiKey></ApiKey>
+      <AuthenticationMethod>None</AuthenticationMethod>
+      <LogLevel>Info</LogLevel>
+      <Branch>develop</Branch>
+      <LaunchBrowser>False</LaunchBrowser>
+      <SslCertHash></SslCertHash>
+      <UpdateMechanism>BuiltIn</UpdateMechanism>
     </Config>
   init-lidarr.sh: |
     #!/bin/bash
@@ -95,7 +106,7 @@ spec:
           {{- else }}
             - name: mediaserver-volume
               mountPath: /lidarr-config
-              subPath: "{{ .Values.general.storage.subPaths.config }}/lidarr"
+              subPath: "{{ .Values.general.storage.subPaths.config }}/lidarr/Lidarr"
           {{- end }}
           securityContext:
             runAsUser: {{ .Values.general.puid }}
