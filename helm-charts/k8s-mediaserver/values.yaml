@@ -246,6 +246,36 @@ prowlarr:
   #  storage: 5Gi
   #  selector: {}
 
+lidarr:
+  enabled: true
+  container:
+    image: lscr.io/linuxserver/lidarr
+    tag: latest
+    nodeSelector: {}
+    port: 8686
+  service:
+    type: ClusterIP
+    port: 8686
+    nodePort:
+    extraLBService: false
+    extraLBAnnotations: {}
+  ingress:
+    enabled: true
+    annotations: {}
+    path: /lidarr
+    tls:
+      enabled: false
+      secretName: ""
+  resources: {}
+  volume: {}
+  #  name: pvc-lidarr-config
+  #  storageClassName: longhorn
+  #  annotations: {}
+  #  labels: {}
+  #  accessModes: ReadWriteOnce
+  #  storage: 5Gi
+  #  selector: {}
+
 plex:
   enabled: true
   claim: "CHANGEME"
