@@ -138,6 +138,12 @@ spec:
               mountPath: "/config"
               subPath: "{{ .Values.general.storage.subPaths.config }}/lidarr"
           {{- end }}
+            - name: mediaserver-volume
+              mountPath: "/downloads"
+              subPath: "{{ .Values.general.storage.subPaths.downloads }}"
+            - name: mediaserver-volume
+              mountPath: "/music"
+              subPath: "{{ .Values.general.storage.subPaths.music }}"
           {{- with .Values.lidarr.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
