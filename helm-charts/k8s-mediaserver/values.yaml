@@ -313,6 +313,20 @@ plex:
   #  accessModes: ReadWriteOnce
   #  storage: 5Gi
   #  selector: {}
+  # Alternatively mount /config from a directory on the node instead of a PVC.
+  # No PVC is created when hostPath is set; pin the pod with container.nodeSelector.
+  #  name: plex-config
+  #  hostPath: /var/mnt/storage/plex/config
+  # Extra env vars, volumes and mounts appended to the plex container/pod.
+  extraEnv: []
+  #  - name: SOME_VAR
+  #    value: "some-value"
+  extraVolumes: []
+  #  - name: plex-transcode
+  #    emptyDir: {}
+  extraVolumeMounts: []
+  #  - name: plex-transcode
+  #    mountPath: /transcode
 
 jellyfin:
   enabled: false

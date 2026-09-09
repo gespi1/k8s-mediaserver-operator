@@ -64,6 +64,7 @@ spec:
   {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}
+{{- if and .Values.plex.volume (not .Values.plex.volume.hostPath) }}
 {{- with .Values.plex.volume }}
 ---
 apiVersion: v1
@@ -89,6 +90,7 @@ spec:
   selector:
   {{- toYaml . | nindent 4 }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- with .Values.jellyfin.volume }}
 ---

@@ -41,14 +41,27 @@ spec:
         {{- end }}
         {{- if .Values.plex.volume }}
         - name: {{ .Values.plex.volume.name }}
+          {{- if .Values.plex.volume.hostPath }}
+          hostPath:
+            path: {{ .Values.plex.volume.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ .Values.plex.volume.name }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.plex.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           envFrom:
             - configMapRef:
                 name: plex-config
+          {{- with .Values.plex.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           image: "{{ .Values.plex.container.image }}:{{ .Values.plex.container.tag | default .Values.general.image_tag }}"
           imagePullPolicy: Always
           readinessProbe:
@@ -83,6 +96,9 @@ spec:
             - name: mediaserver-volume
               mountPath: /downloads
               subPath: "{{ .Values.general.storage.subPaths.downloads }}"
+          {{- with .Values.plex.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.plex.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
