@@ -117,7 +117,7 @@ spec:
     spec:
       initContainers:
         - name: config-transmission
-          image: docker.io/ubuntu:groovy
+          image: docker.io/ubuntu:noble-20261024.1
           command: ["/init-transmission/init-transmission.sh"]
           volumeMounts:
             - mountPath: /init-transmission

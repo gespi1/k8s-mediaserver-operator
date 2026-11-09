@@ -48,7 +48,7 @@ spec:
     spec:
       initContainers:
         - name: config-jackett
-          image: docker.io/ubuntu:groovy
+          image: docker.io/ubuntu:noble-20261024.1
           command: ["/init-jackett/init-jackett.sh"]
           volumeMounts:
             - mountPath: /init-jackett

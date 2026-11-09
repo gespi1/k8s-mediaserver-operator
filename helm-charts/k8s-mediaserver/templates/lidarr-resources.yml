@@ -95,7 +95,7 @@ spec:
       serviceAccountName: lidarr-sa
       initContainers:
         - name: config-lidarr
-          image: docker.io/ubuntu:groovy
+          image: docker.io/ubuntu:noble-20261024.1
           command: ["/init-lidarr/init-lidarr.sh"]
           volumeMounts:
             - mountPath: /init-lidarr

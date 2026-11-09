@@ -50,7 +50,7 @@ spec:
     spec:
       initContainers:
         - name: config-sonarr
-          image: docker.io/ubuntu:groovy
+          image: docker.io/ubuntu:noble-20261024.1
           command: ["/init-sonarr/init-sonarr.sh"]
           volumeMounts:
             - mountPath: /init-sonarr
